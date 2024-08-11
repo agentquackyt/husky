@@ -1,11 +1,11 @@
-function base64url_encode(buffer) {
+function base64url_encode(buffer: string) {
     return btoa(buffer)
         .replace(/\+/g, '-')
         .replace(/\//g, '_')
         .replace(/=+$/, '');
 }
 
-function base64URLdecode(str) {
+function base64URLdecode(str: string) {
     const base64Encoded = str.replace(/-/g, '+').replace(/_/g, '/');
     const padding = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
     const base64WithPadding = base64Encoded + padding;
@@ -17,7 +17,7 @@ export const JWT = {
         secret: Bun.env.JWT_SECRET || "secret",
         algorithm: "sha256"
     },
-    sign: (payloadJson) => {
+    sign: (payloadJson: any) => {
         let header = base64url_encode(JSON.stringify({ alg: JWT.settings.algorithm, typ: "JWT" }));
         let payload = base64url_encode(JSON.stringify(payloadJson));
        
@@ -28,7 +28,7 @@ export const JWT = {
 
         return `${header}.${payload}.${signature}`;
     },
-    verify: (token) => {
+    verify: (token: string) => {
         let [header, payload, signature] = token.split(".");
         let hasher = new Bun.CryptoHasher("sha256");
         hasher.update(header+"."+payload);
@@ -36,7 +36,7 @@ export const JWT = {
         let expectedSignature = base64url_encode(hasher.digest("base64"));
         return signature === expectedSignature;
     },
-    payloadFromToken: (token) => {
+    payloadFromToken: (token: string) => {
         let payload = token.split(".")[1];
         return JSON.parse(base64URLdecode(payload));
     },
@@ -44,21 +44,23 @@ export const JWT = {
         const cookies = {};
         req.headers.get("cookie")?.split(";").forEach((cookie: string) => {
             let [key, value] = cookie.split("=");
+            // @ts-expect-error
             cookies[key.trim()] = value;
         });
-
+            // @ts-expect-error
         if(cookies["token"] == undefined) return false;
+            // @ts-expect-error
 
         return JWT.verify(cookies["token"]);
     },
-    middleware: (redirectPath: string) => async (req, next) => {
+    middleware: (redirectPath: string) => async (req: Request, next: () => any) => {
         let response = await JWT.verifyJWT(req);
         if(response == false) return Response.redirect(redirectPath);
         return next();
     }
 }
 
-export function SHA256_to_HEX(data) {
+export function SHA256_to_HEX(data: string): string {
     const hasher = new Bun.CryptoHasher("sha256");
     hasher.update(data);
     return hasher.digest("hex");

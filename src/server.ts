@@ -1,18 +1,18 @@
 import { Router } from "./route";
-import { Color, Output } from "./logging";
+import { Output } from "./logging";
 
-type HuskyConfig = {
+export type HuskyConfig = {
   port?: string | number;
   httpsConfig?: TLSConfig[];
   logging?: {
-    allowHTTP?: boolean;
-    allowWS?: boolean;
-    allowError?: boolean;
-    allowInfo?: boolean;
+    allowHTTP: boolean;
+    allowWS: boolean;
+    allowError: boolean;
+    allowInfo: boolean;
   };
 }
 
-type TLSConfig = {
+export type TLSConfig = {
   serverName: string;
   key: string;
   cert: string;
@@ -23,21 +23,20 @@ type TLSConfig = {
 export class Husky {
   routerList: Router[];
   port: string | number;
-  server: import("bun").Server;
+  server: import("bun").Server | undefined;
   tlsConfig: TLSConfig[] | undefined;
 
   constructor(config?: HuskyConfig) {
     this.routerList = [];
     this.handleRequest = this.handleRequest.bind(this);
     if (config !== undefined) {
-      config.port !== undefined ? this.port = config.port: this.port = Bun.env.PORT || 0;
+      this.port = config.port !== undefined ? config.port : Bun.env.PORT || 0;
       if (config.logging !== undefined) {
         Output.config(config.logging);
       }
       if (config.httpsConfig !== undefined) {
         this.tlsConfig = config.httpsConfig;
       }
-
     } else {
       this.port = Bun.env.PORT || 0;
     }
@@ -58,17 +57,17 @@ export class Husky {
     return this.server;
   }
 
-  handleRequest(req: Request): Response | Promise<Response> | any {
+  handleRequest(req: Request): Response | Promise<Response> {
     Output.http(req);
-    let url = new URL(req.url).pathname;
-    for (let router of this.routerList) {
+    const url = new URL(req.url).pathname;
+    for (const router of this.routerList) {
       if (url.startsWith(router.getBaseRoute) || url.startsWith(router.getBaseRoute.slice(0, -1))) {
-        let routerCallback = router.run(req);
+        const routerCallback = router.run(req) as Response | Promise<Response> | undefined;
+        // If the router returns a response, return it
         if (routerCallback !== undefined) return routerCallback;
       }
     }
     Output.error("Fallback to default 404");
-    return Response.json({ error: "Not found" }, { status: 404 });
+    return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
   }
 }
-

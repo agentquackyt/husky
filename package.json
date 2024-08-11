@@ -1,5 +1,5 @@
 {
-  "name": "husky-routes",
+  "name": "husky-routing",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -23,7 +23,7 @@
   "bugs": "https://github.com/agentquackyt/husky/issues",
   "author": "AgentQuack",
   "devDependencies": {
-    "bun-plugin-dts": "^0.2.1",
+    "bun-plugin-dts": "^0.2.3",
     "@types/bun": "^1.0.0",
     "typescript": "^5.2.2"
   }

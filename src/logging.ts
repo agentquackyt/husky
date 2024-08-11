@@ -54,10 +54,8 @@ export const Output = {
     /**
      * Change the configuration of the logger.
      */
-    config: (config: Object) => {
-        for (let key in config) {
-            development[key] = config[key];
-        }
+    config: (config: { allowHTTP: boolean, allowWS: boolean, allowError: boolean, allowInfo: boolean }) => {
+        development = config;
     }
 }
 
