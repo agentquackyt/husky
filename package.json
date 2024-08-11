@@ -1,0 +1,30 @@
+{
+  "name": "husky-routes",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "description": "Husky Routing is meant to provide an easy, fast and customisable way to implement routing with the JavaScript Runtime Bun. Get started by installing the libray using 'bun add husky-routing' or cloning the offical template.",
+  "scripts": {
+    "build": "bun run build.mjs",
+    "prepublishOnly": "bun run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "bun"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/agentquackyt/husky#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agentquackyt/husky.git"
+  },
+  "bugs": "https://github.com/agentquackyt/husky/issues",
+  "author": "AgentQuack",
+  "devDependencies": {
+    "bun-plugin-dts": "^0.2.1",
+    "@types/bun": "^1.0.0",
+    "typescript": "^5.2.2"
+  }
+}
