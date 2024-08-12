@@ -3,12 +3,4 @@ import { Router } from "./route"
 import { JWT } from "./jwt"
 import { Color, Output } from "./logging"
 
-export default {
-    Husky,
-    Router,
-    JWT,
-    Console: {
-        Output,
-        Color
-    }
-}
+export { Husky, Router, JWT, Color, Output }

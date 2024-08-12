@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 function base64url_encode(buffer: string) {
     return btoa(buffer)
         .replace(/\+/g, '-')
@@ -10,30 +12,32 @@ function base64URLdecode(str: string) {
     const padding = str.length % 4 === 0 ? '' : '='.repeat(4 - (str.length % 4));
     const base64WithPadding = base64Encoded + padding;
     return atob(base64WithPadding);
-  }
+}
 
 export const JWT = {
     settings: {
         secret: Bun.env.JWT_SECRET || "secret",
-        algorithm: "sha256"
+        algorithm: "HS256"
+    },
+    setSecret: (secret: string) => {
+        JWT.settings.secret = secret;
     },
     sign: (payloadJson: any) => {
         let header = base64url_encode(JSON.stringify({ alg: JWT.settings.algorithm, typ: "JWT" }));
         let payload = base64url_encode(JSON.stringify(payloadJson));
-       
-        const hasher = new Bun.CryptoHasher("sha256");
-        hasher.update(header+"."+payload);
-        hasher.update(JWT.settings.secret);
-        let signature = base64url_encode(hasher.digest("base64"));
+        let dataToSign = header + "." + payload;
+        let hash = crypto.createHmac('SHA256', btoa(JWT.settings.secret)).update(dataToSign);
+        
+        
+        let signature = base64url_encode(hash.digest("base64"));
 
         return `${header}.${payload}.${signature}`;
     },
     verify: (token: string) => {
         let [header, payload, signature] = token.split(".");
-        let hasher = new Bun.CryptoHasher("sha256");
-        hasher.update(header+"."+payload);
-        hasher.update(JWT.settings.secret);
-        let expectedSignature = base64url_encode(hasher.digest("base64"));
+        let hash = crypto.createHmac('SHA256', btoa(JWT.settings.secret)).update(header + "." + payload);
+
+        let expectedSignature = base64url_encode(hash.digest("base64"));
         return signature === expectedSignature;
     },
     payloadFromToken: (token: string) => {
@@ -47,15 +51,15 @@ export const JWT = {
             // @ts-expect-error
             cookies[key.trim()] = value;
         });
-            // @ts-expect-error
-        if(cookies["token"] == undefined) return false;
-            // @ts-expect-error
+        // @ts-expect-error
+        if (cookies["token"] == undefined) return false;
+        // @ts-expect-error
 
         return JWT.verify(cookies["token"]);
     },
     middleware: (redirectPath: string) => async (req: Request, next: () => any) => {
         let response = await JWT.verifyJWT(req);
-        if(response == false) return Response.redirect(redirectPath);
+        if (response == false) return Response.redirect(redirectPath);
         return next();
     }
 }

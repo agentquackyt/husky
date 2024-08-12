@@ -1,6 +1,6 @@
 {
   "name": "husky-routing",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "description": "Husky Routing is meant to provide an easy, fast and customisable way to implement routing with the JavaScript Runtime Bun. Get started by installing the libray using 'bun add husky-routing' or cloning the offical template.",

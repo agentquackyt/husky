@@ -11,6 +11,19 @@ export interface Route {
     method?: Method
 }
 
+/**
+ * The Router class for creating routes
+ * @class Router
+ * @param {string} route - The route
+ * @param {Function} [onError] - The error function (optional)
+ * @example
+ * const router = new Router("/api")
+ *      .get("/", (req, res) => {
+ *         return new Response("Hello World");
+ *      })
+ * 
+ * husky.use(router);
+ */
 export class Router {
     route: string;
     onError: ((req: Request) => Response) | undefined;

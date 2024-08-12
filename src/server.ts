@@ -1,6 +1,13 @@
 import { Router } from "./route";
 import { Output } from "./logging";
 
+/**
+ * Husky configuration
+ * @typedef {Object} HuskyConfig
+ * @property {string | number} [port] - The port to listen on (optional)
+ * @property {TLSConfig[]} [httpsConfig] - The TLS configuration (optional)
+ * @property {Object} [logging] - The logging configuration (optional)
+ */
 export type HuskyConfig = {
   port?: string | number;
   httpsConfig?: TLSConfig[];
@@ -12,6 +19,15 @@ export type HuskyConfig = {
   };
 }
 
+/**
+ * TLS configuration
+ * @typedef {Object} TLSConfig
+ * @property {string} serverName - The server name
+ * @property {string} key - The key
+ * @property {string} cert - The certificate
+ * @property {string} [passphrase] - The passphrase (optional)
+ * @property {string} [ca] - The CA (optional)
+ */
 export type TLSConfig = {
   serverName: string;
   key: string;
@@ -20,6 +36,11 @@ export type TLSConfig = {
   ca?: string;
 }
 
+/**
+ * The main Husky class for creating a server
+ * @class Husky
+ * @param {HuskyConfig} [config] - The Husky configuration (optional)
+ */
 export class Husky {
   routerList: Router[];
   port: string | number;
