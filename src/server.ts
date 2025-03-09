@@ -89,8 +89,10 @@ export class Husky {
     Output.http(req);
     const url = new URL(req.url).pathname;
     for (const router of this.routerList) {
-      // Assume baseRoute ends with "/" from Router class
-      if (url.startsWith(router.getBaseRoute)) {
+      const baseRoute = router.getBaseRoute; // e.g., "/dashboard/"
+      const baseRouteNoSlash = baseRoute.endsWith("/") ? baseRoute.slice(0, -1) : baseRoute; // e.g., "/dashboard"
+      // Match with or without trailing slash
+      if (url.startsWith(baseRoute) || url.startsWith(baseRouteNoSlash)) {
         const routerCallback = router.run(req) as Response | Promise<Response> | undefined;
         if (routerCallback !== undefined) return routerCallback;
       }

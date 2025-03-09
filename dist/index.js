@@ -114,7 +114,9 @@ class Husky {
     Output.http(req);
     const url = new URL(req.url).pathname;
     for (const router of this.routerList) {
-      if (url.startsWith(router.getBaseRoute)) {
+      const baseRoute = router.getBaseRoute;
+      const baseRouteNoSlash = baseRoute.endsWith("/") ? baseRoute.slice(0, -1) : baseRoute;
+      if (url.startsWith(baseRoute) || url.startsWith(baseRouteNoSlash)) {
         const routerCallback = router.run(req);
         if (routerCallback !== undefined)
           return routerCallback;
@@ -147,8 +149,6 @@ class Router {
   routes;
   staticRoutes;
   constructor(route, onError) {
-    if (!route.endsWith("/"))
-      route += "/";
     this.route = route;
     this.onError = onError;
     this.routes = [];
@@ -165,6 +165,7 @@ class Router {
   run(req) {
     let pathname = new URL(req.url).pathname;
     pathname = pathname.replace(this.route, "");
+    pathname.endsWith("/") && pathname.slice(0, -1);
     const paths = pathname.split("/").filter((segment) => segment !== "");
     const requestMethod = Method[req.method];
     const staticMap = this.staticRoutes[requestMethod];

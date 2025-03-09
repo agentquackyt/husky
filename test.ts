@@ -18,6 +18,15 @@ server.use(new Router("")
     })
 );
 
+server.use(new Router("/api")
+    .get("/", (req) => {
+        return new Response("API Test");
+    })
+    .get("/test/:id", (req, params) => {
+        return new Response(`API Test: ${params.id}`);
+    })
+);
+
 
 server.start({callback: (port) => {
     Output.info(`Server started on port ${port}`);

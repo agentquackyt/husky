@@ -32,7 +32,7 @@ export class Router {
     };
 
     constructor(route: string, onError?: (req: Request) => Response) {
-        if (!route.endsWith("/")) route += "/";
+        // if (!route.endsWith("/")) route += "/";
         this.route = route;
         this.onError = onError;
         this.routes = []; // For dynamic routes only
@@ -51,6 +51,7 @@ export class Router {
     public run(req: Request): Response | Promise<Response> | boolean | undefined {
         let pathname = new URL(req.url).pathname;
         pathname = pathname.replace(this.route, "");
+        pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
         const paths = pathname.split("/").filter(segment => segment !== "");
         
         const requestMethod = Method[req.method as keyof typeof Method];
