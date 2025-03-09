@@ -11,20 +11,39 @@ export interface Route {
 	callback: (req: Request, params?: any) => Response | Promise<Response> | boolean;
 	method?: Method;
 }
-declare class Router {
+/**
+ * The Router class for creating routes, optimized for performance.
+ * @class Router
+ * @param {string} route - The base route (e.g., "/api")
+ * @param {Function} [onError] - Optional error handler
+ * @example
+ * const router = new Router("/api")
+ *     .get("/", (req) => new Response("Hello World"))
+ *     .get("/users/:id", (req, params) => new Response(`User ${params.id}`));
+ * husky.use(router);
+ */
+export declare class Router {
 	route: string;
 	onError: ((req: Request) => Response) | undefined;
-	middleware: ((req: Request, next: any) => Response | Promise<Response>) | undefined;
+	middleware: ((req: Request, next: () => Response | Promise<Response> | boolean) => Response | Promise<Response>) | undefined;
 	routes: Route[];
+	private staticRoutes;
 	constructor(route: string, onError?: (req: Request) => Response);
 	get getBaseRoute(): string;
 	run(req: Request): Response | Promise<Response> | boolean | undefined;
-	use(middleware: (req: Request, next: any) => Response | Promise<Response>): Router;
+	use(middleware: (req: Request, next: () => Response | Promise<Response> | boolean) => Response | Promise<Response>): Router;
 	get(url: string, callback: (req: Request, params?: any) => Response | Promise<Response> | boolean): Router;
-	post(url: string, callback: (req: Request, params?: any) => Response | Promise<Response> | boolean): this;
-	put(url: string, callback: (req: Request) => Response | Promise<Response> | boolean): this;
-	delete(url: string, callback: (req: Request) => Response | Promise<Response> | boolean): this;
+	post(url: string, callback: (req: Request, params?: any) => Response | Promise<Response> | boolean): Router;
+	put(url: string, callback: (req: Request, params?: any) => Response | Promise<Response> | boolean): Router;
+	delete(url: string, callback: (req: Request, params?: any) => Response | Promise<Response> | boolean): Router;
 }
+/**
+ * Husky configuration
+ * @typedef {Object} HuskyConfig
+ * @property {string | number} [port] - The port to listen on (optional)
+ * @property {TLSConfig[]} [httpsConfig] - The TLS configuration (optional)
+ * @property {Object} [logging] - The logging configuration (optional)
+ */
 export type HuskyConfig = {
 	port?: string | number;
 	httpsConfig?: TLSConfig[];
@@ -35,6 +54,15 @@ export type HuskyConfig = {
 		allowInfo: boolean;
 	};
 };
+/**
+ * TLS configuration
+ * @typedef {Object} TLSConfig
+ * @property {string} serverName - The server name
+ * @property {string} key - The key
+ * @property {string} cert - The certificate
+ * @property {string} [passphrase] - The passphrase (optional)
+ * @property {string} [ca] - The CA (optional)
+ */
 export type TLSConfig = {
 	serverName: string;
 	key: string;
@@ -42,77 +70,95 @@ export type TLSConfig = {
 	passphrase?: string;
 	ca?: string;
 };
-declare class Husky {
-	routerList: Router[];
-	port: string | number;
+/**
+ * The main Husky class for creating a server
+ * @class Husky
+ * @param {HuskyConfig} [config] - The Husky configuration (optional)
+ */
+export declare class Husky {
+	private routerList;
+	private port;
 	server: import("bun").Server | undefined;
-	tlsConfig: TLSConfig[] | undefined;
+	private tlsConfig;
 	constructor(config?: HuskyConfig);
+	/** Adds a router and sorts the list by base route length (descending) */
 	use(router: Router): void;
+	/** Starts the server and returns the server instance */
 	start({ port, callback }?: {
 		port?: number;
 		callback?: (port: number) => void;
 	}): import("bun").Server;
+	/** Handles incoming requests by finding the first matching router */
 	handleRequest(req: Request): Response | Promise<Response>;
+	/** Retrieves the server instance, throwing an error if not started */
+	getServer(): import("bun").Server;
 }
-declare const _default: {
-	Husky: typeof Husky;
-	Router: typeof Router;
-	JWT: {
-		settings: {
-			secret: string;
-			algorithm: string;
-		};
-		sign: (payloadJson: any) => string;
-		verify: (token: string) => boolean;
-		payloadFromToken: (token: string) => any;
-		verifyJWT: (req: Request) => Promise<boolean>;
-		middleware: (redirectPath: string) => (req: Request, next: () => any) => Promise<any>;
+export declare const JWT: {
+	settings: {
+		secret: string;
+		algorithm: string;
 	};
-	Console: {
-		Output: {
-			http: (req: Request) => void;
-			error: (message: string) => void;
-			info: (message: string) => void;
-			ws: (message: string) => void;
-			validation: (message: string) => void;
-			debug: (message: any) => void;
-			center: (message: string, dotted?: boolean) => void;
-			printProgress: (progress: string) => void;
-			config: (config: {
-				allowHTTP: boolean;
-				allowWS: boolean;
-				allowError: boolean;
-				allowInfo: boolean;
-			}) => void;
-		};
-		Color: {
-			red: string;
-			green: string;
-			yellow: string;
-			blue: string;
-			magenta: string;
-			cyan: string;
-			white: string;
-			reset: string;
-			red_bg: string;
-			green_bg: string;
-			yellow_bg: string;
-			blue_bg: string;
-			magenta_bg: string;
-			cyan_bg: string;
-			white_bg: string;
-			bold: string;
-			underline: string;
-			inverse: string;
-			hidden: string;
-			strikethrough: string;
-		};
-	};
+	/** Set a new secret for signing and verification */
+	setSecret: (secret: string) => void;
+	/** Sign a payload to create a JWT */
+	sign: (payloadJson: any) => string;
+	/** Verify the integrity of a JWT */
+	verify: (token: string) => boolean;
+	/** Extract the payload from a JWT */
+	payloadFromToken: (token: string) => any;
+	/** Verify JWT from request cookies */
+	verifyJWT: (req: Request) => Promise<boolean>;
+	/** Middleware to protect routes */
+	middleware: (redirectPath: string) => (req: Request, next: () => any) => Promise<Response | any>;
 };
-
-export {
-	_default as default,
+/**
+ * The Output object provides various logging functions for different types of messages.
+ */
+export declare const Output: {
+	http: (req: Request) => void;
+	error: (message: string) => void;
+	info: (message: string) => void;
+	ws: (message: string) => void;
+	validation: (message: string) => void;
+	debug: (message: any) => void;
+	/**
+	 * the center function centers a message in the console.
+	 * @param message The message to center
+	 * @param dotted Optional: whether to use dots instead of spaces
+	 */
+	center: (message: string, dotted?: boolean) => void;
+	printProgress: (progress: string) => void;
+	/**
+	 * Change the configuration of the logger.
+	 */
+	config: (config: {
+		allowHTTP: boolean;
+		allowWS: boolean;
+		allowError: boolean;
+		allowInfo: boolean;
+	}) => void;
+};
+export declare const Color: {
+	red: string;
+	green: string;
+	yellow: string;
+	blue: string;
+	magenta: string;
+	cyan: string;
+	white: string;
+	reset: string;
+	red_bg: string;
+	green_bg: string;
+	yellow_bg: string;
+	blue_bg: string;
+	magenta_bg: string;
+	cyan_bg: string;
+	white_bg: string;
+	bold: string;
+	underline: string;
+	inverse: string;
+	hidden: string;
+	strikethrough: string;
 };
 
 export {};

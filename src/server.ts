@@ -17,7 +17,7 @@ export type HuskyConfig = {
     allowError: boolean;
     allowInfo: boolean;
   };
-}
+};
 
 /**
  * TLS configuration
@@ -34,7 +34,7 @@ export type TLSConfig = {
   cert: string;
   passphrase?: string;
   ca?: string;
-}
+};
 
 /**
  * The main Husky class for creating a server
@@ -42,10 +42,10 @@ export type TLSConfig = {
  * @param {HuskyConfig} [config] - The Husky configuration (optional)
  */
 export class Husky {
-  routerList: Router[];
-  port: string | number;
-  server: import("bun").Server | undefined;
-  tlsConfig: TLSConfig[] | undefined;
+  private routerList: Router[];
+  private port: string | number;
+  public server: import("bun").Server | undefined;
+  private tlsConfig: TLSConfig[] | undefined;
 
   constructor(config?: HuskyConfig) {
     this.routerList = [];
@@ -63,11 +63,17 @@ export class Husky {
     }
   }
 
+  /** Adds a router and sorts the list by base route length (descending) */
   use(router: Router): void {
     this.routerList.push(router);
+    // Sort routers by base route length (longest first) for specific matching
+    this.routerList.sort((a, b) => 
+      b.getBaseRoute.length - a.getBaseRoute.length
+    );
   }
 
-  start({ port, callback }: { port?: number; callback?: (port: number) => void; } = {}): import("bun").Server {
+  /** Starts the server and returns the server instance */
+  start({ port, callback }: { port?: number; callback?: (port: number) => void } = {}): import("bun").Server {
     this.server = Bun.serve({
       port: port || this.port,
       fetch: this.handleRequest,
@@ -78,17 +84,26 @@ export class Husky {
     return this.server;
   }
 
+  /** Handles incoming requests by finding the first matching router */
   handleRequest(req: Request): Response | Promise<Response> {
     Output.http(req);
     const url = new URL(req.url).pathname;
     for (const router of this.routerList) {
-      if (url.startsWith(router.getBaseRoute) || url.startsWith(router.getBaseRoute.slice(0, -1))) {
+      // Assume baseRoute ends with "/" from Router class
+      if (url.startsWith(router.getBaseRoute)) {
         const routerCallback = router.run(req) as Response | Promise<Response> | undefined;
-        // If the router returns a response, return it
         if (routerCallback !== undefined) return routerCallback;
       }
     }
     Output.error("Fallback to default 404");
     return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
+  }
+
+  /** Retrieves the server instance, throwing an error if not started */
+  public getServer(): import("bun").Server {
+    if (this.server === undefined) {
+      throw new Error("Server has not been started yet.");
+    }
+    return this.server;
   }
 }
